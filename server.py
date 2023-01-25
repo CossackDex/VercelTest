@@ -7,7 +7,7 @@ from urllib.parse import quote_plus, urlencode
 
 from authlib.integrations.flask_client import OAuth, OAuthError
 from dotenv import find_dotenv, load_dotenv
-from flask import Flask, redirect, render_template, session, url_for
+from flask import Flask, redirect, render_template, session, url_for, request
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
@@ -32,11 +32,29 @@ oauth.register(
 # Controllers API
 @app.route("/")
 def home():
+    error = request.args.get("error")
     return render_template(
         "home.html",
         session=session.get("user"),
+        e = error,
         pretty=json.dumps(session.get("user"), indent=4),
     )
+
+
+
+
+
+# @app.route("/callback", methods=["GET", "POST"])
+# def callback():
+#     try:
+#         token = oauth.auth0.authorize_access_token()
+#     except OAuthError as e:
+#         return redirect(url_for("home", error=e))
+#     session["user"] = token
+#     return redirect("/")
+
+
+
 
 @app.route("/callback", methods=["GET", "POST"])
 def callback():
@@ -44,9 +62,17 @@ def callback():
         token = oauth.auth0.authorize_access_token()
     except OAuthError as e:
         session.clear()
-        return render_template(
-            "404.html",
-            html_error = e
+        return redirect(
+            "https://"
+            + env.get("AUTH0_DOMAIN")
+            + "/v2/logout?"
+            + urlencode(
+                {
+                    "returnTo": url_for("home",error = e, _external=True),
+                    "client_id": env.get("AUTH0_CLIENT_ID"),
+                },
+                quote_via=quote_plus,
+            ),
         )
     session["user"] = token
     return redirect("/")

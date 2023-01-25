@@ -7,9 +7,14 @@
   <body>
     {% if session %}
     <h1>Welcome {{session.userinfo.name}}!</h1>
-    <p><a href="/logout" id="qsLogoutBtn">Logout</a></p>
         <div><h1>User {{ session.userinfo.name }} logged in already {{  session.userinfo.userCount}} times.</h1></div>
         <h2>Thanks for joining us!</h2>
+        <p><a href="/logout" id="qsLogoutBtn">Logout</a></p>
+        {%  elif e %}
+            <h1>Something went wrong!</h1>
+    <h2>{{ e }}</h2>
+            <h2>Please contact your Administrator</h2>
+                <p><a href="/login" id="qsLoginBtn">Login</a></p>
     {% else %}
     <h1 id="profileDropDown">Welcome Guest</h1>
     <p><a href="/login" id="qsLoginBtn">Login</a></p>
