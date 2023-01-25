@@ -1,61 +1,55 @@
-# Auth0 Python Web App Sample
+# APP POC
 
-This sample demonstrates how to add authentication to a Python web app using Auth0.
+Demo of application -> https://web-production-5bdf3.up.railway.app/
 
-# Running the App
+The concept of the app I will split into 3 seperate sections:
+1. Base application 
+2. E-mail whitelist
+3. User Count 
 
-To run the sample, make sure you have `python3` and `pip` installed.
+Boilerplate for base application can be easily created by Auth0 app generation. For the POC purpose I will be using 
+regular web application, but Auth0 offers template for Native, Single page application and Machine to machine apps.
 
-Rename `.env.example` to `.env` and populate it with the client ID, domain, secret, callback URL and audience for your
-Auth0 app. If you are not implementing any API you can use `https://YOUR_DOMAIN.auth0.com/userinfo` as the audience.
-Also, add the callback URL to the settings section of your Auth0 client.
+Auth0 dashboard offers extensive view of several important information but at this moment the most crucial right now is Settings view 
+and Connections. 
 
-Register `http://localhost:3000/callback` as `Allowed Callback URLs` and `http://localhost:3000`
-as `Allowed Logout URLs` in your client settings.
+In settings under Basic Information there is Domain/Client ID and Client Secret. These will be set as environmental variable for app, that will allow app to connect with Auth0.
+Another important section in this view is Application URIs, where you will set URLs for callback and logout according to your hosting.
 
-Run `pip install -r requirements.txt` to install the dependencies and run `python server.py`.
-The app will be served at [http://localhost:3000/](http://localhost:3000/).
+To allow users to login via Google and Facebook you need to open Connections subpage, and turn on switch for both of connections. 
+In case when you will need more connections, Marketplace offers other solution like Apple/Github etc. 
 
-# Running the App with Docker
+For E-mail whitelist and User count I will use Auth0 Action Flows, Login to be precise. 
 
-To run the sample, make sure you have `docker` installed.
+![](.README_images/7170ef33.png)
 
-To run the sample with [Docker](https://www.docker.com/), make sure you have `docker` installed.
+```javascript
+exports.onExecutePostLogin = async (event, api) => {
+const whitelistEmailsSet = new Set(['d.matuszczyk98@gmail.com', 'sample@example.com'])
 
-Rename the .env.example file to .env, change the environment variables, and register the URLs as explained [previously](#running-the-app).
+  if (event.user.email && whitelistEmailsSet.has(event.user.email)) {
+}
+  else {
+  api.access.deny(`Access to ${event.client.name} is not allowed.`);
+};
+}
+```
 
-Run `sh exec.sh` to build and run the docker image in Linux or run `.\exec.ps1` to build
-and run the docker image on Windows.
+```javascript
+exports.onExecutePostLogin = async (event, api) => {
+  if (!event.user.user_metadata.userCount){
+    api.user.setUserMetadata("userCount", 1)
+  }
+  else{
+    api.user.setUserMetadata("userCount",event.user.user_metadata.userCount+1 )
+  }
 
-## What is Auth0?
+  const userCount = event.user.user_metadata.userCount;
+  const namespace = "https://sampleapp.com"
+  if (event.authorization) {
+    // Set claims 
+    api.idToken.setCustomClaim(`userCount`, userCount);
+  }
 
-Auth0 helps you to:
-
-* Add authentication with [multiple authentication sources](https://auth0.com/docs/identityproviders),
-either social like **Google, Facebook, Microsoft Account, LinkedIn, GitHub, Twitter, Box, Salesforce, among others**,or
-enterprise identity systems like **Windows Azure AD, Google Apps, Active Directory, ADFS or any SAML Identity Provider**.
-* Add authentication through more traditional **[username/password databases](https://docs.auth0.com/mysql-connection-tutorial)**.
-* Add support for **[linking different user accounts](https://auth0.com/docs/link-accounts)** with the same user.
-* Support for generating signed [JSON Web Tokens](https://auth0.com/docs/jwt) to call your APIs and
-**flow the user identity** securely.
-* Analytics of how, when and where users are logging in.
-* Pull data from other sources and add it to the user profile, through [JavaScript rules](https://auth0.com/docs/rules).
-
-## Create a free account in Auth0
-
-1. Go to [Auth0](https://auth0.com) and click Sign Up.
-2. Use Google, GitHub or Microsoft Account to login.
-
-## Issue Reporting
-
-If you have found a bug or if you have a feature request, please report them at this repository issues section.
-Please do not report security vulnerabilities on the public GitHub issue tracker.
-The [Responsible Disclosure Program](https://auth0.com/whitehat) details the procedure for disclosing security issues.
-
-## Author
-
-[Auth0](https://auth0.com)
-
-## License
-
-This project is licensed under the MIT license. See the [LICENSE](../LICENSE) file for more info.
+};
+```
