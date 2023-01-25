@@ -7,6 +7,7 @@ The concept of the app I will split into three separate sections:
 2. E-mail whitelist
 3. User Count 
 
+## Base application
 A Boilerplate for the base application can be easily created by Auth0 app generation. For the POC purpose, I will be using 
 regular web application, but Auth0 offers a template for Native, Single page applications and Machine to machine apps.
 
@@ -33,8 +34,8 @@ For E-mail whitelist and User count I will use Auth0 Action Flows, Login to be p
 
 ## E-mail whitelist
 
-First code is example of how you can handle email whitelist. For POC purpose it's small SET that will only allow emails from the hard-coded list of addresses.
-If your company has custom email ending, this code can be easliy changed to allow auth from the set of emails based on rule.
+The first code is an example of handling an e-mail whitelist. For POC purposes, it's a small set that only allows e-mails from the hard-coded list of addresses.
+If your company has a custom e-mail end, you can easily rewrite this code to auth from the set of e-mails based on the rule.
 
 ```javascript
 exports.onExecutePostLogin = async (event, api) => {
@@ -43,14 +44,13 @@ const whitelistEmailsSet = new Set(['sample@example.com'])
   if (event.user.email && whitelistEmailsSet.has(event.user.email)) {
 }
   else {
-  api.access.deny(`Access to ${event.client.name} is not allowed.`);
+  api.access.deny(`Access is not allowed. Conntact you administrator`);
 };
 }
 ```
 
 ## User Count
-For user count, I'm using user metadata to store count and claims to serve number in the callback. Both claims and user metadata are offer as a built-in functions to Auth0.
-
+I'm using user metadata to store count and claims to serve numbers in the callback for user count. Both claims and user metadata are offered as built-in functions to Auth0.
 ```javascript
 exports.onExecutePostLogin = async (event, api) => {
   if (!event.user.user_metadata.userCount){
