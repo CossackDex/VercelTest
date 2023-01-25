@@ -43,6 +43,7 @@ def callback():
     try:
         token = oauth.auth0.authorize_access_token()
     except OAuthError as e:
+        session.clear()
         return render_template(
             "404.html",
             html_error = e
